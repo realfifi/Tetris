@@ -127,6 +127,9 @@ void GameManager::handleInput() {
 			placeBlock();
 
 			break;
+		case 'q':
+			isGameOver = true;
+			break;
 		default: break;
 		}
 	}

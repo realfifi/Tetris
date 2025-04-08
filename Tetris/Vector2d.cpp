@@ -21,7 +21,7 @@ int Vector2d::getY() const {
 	return y;
 }
 
-bool Vector2d::operator == (const Vector2d& o) {
+bool Vector2d::operator == (const Vector2d& o) const {
 	return (o.x == x && o.y == y);
 }
 

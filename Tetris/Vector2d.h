@@ -10,7 +10,7 @@ public:
 	int getX() const;
 	int getY() const;
 
-	bool operator == (const Vector2d& o);
+	bool operator == (const Vector2d& o) const;
 	Vector2d operator + (const Vector2d& o);
 	Vector2d operator - (const Vector2d& o);
 };
