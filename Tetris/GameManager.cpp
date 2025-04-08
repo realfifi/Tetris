@@ -151,40 +151,49 @@ std::unique_ptr<Block> GameManager::getRandomBlock() {
 
 void GameManager::printBoard() {
 	for (int i = -1; i < height + 1; ++i) {
-		// Display the borders
+
+		// Upper and lower border
 		if (i == -1 || i == height) {
 			for (int j = -1; j < width + 1; ++j)
 				std::cout << "*";
 			std::cout << "\n";
 			continue;
 		}
+
 		for (int j = -1; j < width + 1; ++j) {
+
+			// Side borders
 			if (j == -1 || j == width)
 				std::cout << "*";
-			else if (fallenBlocks[i][j]) {
+
+			// Fallen blocks
+			else if (fallenBlocks[i][j])
 				std::cout << "@";
-			}
+
 			else {
+
+				// Display all cells of a block
 				bool flag = false;
 				for (const auto& e : currentBlock->getCurrentCells()) {
-					Vector2d realCellPos = currentBlock->pos + e.pos;
-					int x = realCellPos.getX();
-					int y = realCellPos.getY();
-
-					if (y == i and x == j) {
+					Vector2d pos = currentBlock->pos + e.pos;
+					if (pos.getY() == i and pos.getX() == j) {
 						flag = true;
 						std::cout << "#";
 					}
 				}
+
+				// Otherwise display empty space
 				if (!flag) std::cout << " ";
 			}
 		}
 		std::cout << "\n";
 	}
 
+	// Display score and next block info
 	std::cout << "Score [" << score << "]\n";
 	std::cout << "Next block: \n";
 
+	// Display next block
 	for (int i = 0; i < 4; ++i) {
 		for (int j = 0; j < 4; ++j) {
 			bool flag = false;
