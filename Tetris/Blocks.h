@@ -24,8 +24,9 @@ public:
 	const std::array<Cell, 4>& getCurrentCells() const;
 	int getCurrentRotation() const;
 
-	bool doesCollide(const std::vector<std::vector<bool>>& fallenBlocks);
+	bool doesCollideFallen(const std::vector<std::vector<bool>>& fallenBlocks);
 	bool isOnTheFloor(int height);
+	bool doesCollideWall(int width);
 };
 
 class LBlock : public Block {

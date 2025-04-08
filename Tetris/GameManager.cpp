@@ -1,26 +1,52 @@
 #include "GameManager.h"
 
 GameManager::GameManager(int width, int height)
-	: width(width), height(height), isGameOver(false), currentBlock(nullptr), fallenBlocks(height, std::vector(width, false))
+	: width(width), height(height), isGameOver(false), currentBlock(nullptr), fallenBlocks(height, std::vector(width, false)), score(0)
 {
 	srand(time(NULL));
 }
 
 void GameManager::run() {
+	using namespace std::chrono;
+
 	currentBlock = getRandomBlock();
+	nextBlock = getRandomBlock();
+
+	auto last = high_resolution_clock::now();
+
 	while (!isGameOver) {
+		auto now = high_resolution_clock::now();
 		system("cls");
 		handleInput();
-		tryMoveDown();
+		if (now - last >= milliseconds(300)) {
+			tryMoveDown();
+			last = now;
+		}
 		printBoard();
-		Sleep(300);
+		Sleep(16);
 	}
 }
 
-void GameManager::deleteRow(int n) {
-	for (int i = 1; i < n; ++i) {
-		fallenBlocks[i] = fallenBlocks[i - 1];
+void GameManager::checkIfGameOver() {
+	if (currentBlock->doesCollideFallen(fallenBlocks) && currentBlock->pos.getY() <= 1)
+		isGameOver = true;
+}
+
+void GameManager::placeBlock() {
+	handleCollision();
+	checkIfRowFull();
+	currentBlock = std::move(nextBlock);
+	nextBlock = getRandomBlock();
+	checkIfGameOver();
+	score += 10;
+}
+
+void GameManager::deleteRow(int row) {
+	for (int i = row; i > 0; --i) {
+		fallenBlocks[i] = std::move(fallenBlocks[i - 1]);
 	}
+
+	fallenBlocks[0] = std::vector<bool>(width, false);
 }
 
 void GameManager::checkIfRowFull() {
@@ -52,11 +78,10 @@ void GameManager::handleCollision() {
 
 void GameManager::tryMoveDown() {
 	currentBlock->pos.setY(currentBlock->pos.getY() + 1);
-	if (currentBlock->isOnTheFloor(height) || currentBlock->doesCollide(fallenBlocks)) {
+
+	if (currentBlock->isOnTheFloor(height) || currentBlock->doesCollideFallen(fallenBlocks)) {
 		currentBlock->pos.setY(currentBlock->pos.getY() - 1);
-		handleCollision();
-		checkIfRowFull();
-		currentBlock = getRandomBlock();
+		placeBlock();
 		return;
 	}
 }
@@ -66,13 +91,41 @@ void GameManager::handleInput() {
 		char ch = _getch();
 		switch (ch) {
 		case 'a':
+
 			currentBlock->pos.setX(currentBlock->pos.getX() - 1);
+
+			if (currentBlock->doesCollideFallen(fallenBlocks) || currentBlock->doesCollideWall(width)) {
+				currentBlock->pos.setX(currentBlock->pos.getX() + 1);
+			}
 			break;
 		case 'd':
+
 			currentBlock->pos.setX(currentBlock->pos.getX() + 1);
+
+			if (currentBlock->doesCollideFallen(fallenBlocks) || currentBlock->doesCollideWall(width)) {
+				currentBlock->pos.setX(currentBlock->pos.getX() - 1);
+			}
 			break;
 		case 'w':
+
 			currentBlock->rotateBlock(currentBlock->getCurrentRotation() + 1);
+
+			if (currentBlock->isOnTheFloor(height) || currentBlock->doesCollideFallen(fallenBlocks) || currentBlock->doesCollideWall(width)) {
+				currentBlock->rotateBlock(currentBlock->getCurrentRotation() - 1);
+			}
+			break;
+		case 's':
+
+			while (true) {
+				currentBlock->pos.setY(currentBlock->pos.getY() + 1);
+				if (currentBlock->isOnTheFloor(height) || currentBlock->doesCollideFallen(fallenBlocks)) {
+					currentBlock->pos.setY(currentBlock->pos.getY() - 1);
+					break;
+				}
+			}
+
+			placeBlock();
+
 			break;
 		default: break;
 		}
@@ -80,7 +133,7 @@ void GameManager::handleInput() {
 }
 
 std::unique_ptr<Block> GameManager::getRandomBlock() {
-	int type = 3;//rand() % Blocks::TOTAL_BLOCKS;
+	int type = rand() % Blocks::TOTAL_BLOCKS;
 	switch (type) {
 		case 0: return std::make_unique<LBlock>();
 		case 1: return std::make_unique<JBlock>();
@@ -98,15 +151,15 @@ void GameManager::printBoard() {
 		// Display the borders
 		if (i == -1 || i == height) {
 			for (int j = -1; j < width + 1; ++j)
-				std::cout << "#";
+				std::cout << "*";
 			std::cout << "\n";
 			continue;
 		}
 		for (int j = -1; j < width + 1; ++j) {
 			if (j == -1 || j == width)
-				std::cout << "#";
+				std::cout << "*";
 			else if (fallenBlocks[i][j]) {
-				std::cout << "0";
+				std::cout << "@";
 			}
 			else {
 				bool flag = false;
@@ -117,11 +170,28 @@ void GameManager::printBoard() {
 
 					if (y == i and x == j) {
 						flag = true;
-						std::cout << "O";
+						std::cout << "#";
 					}
 				}
 				if (!flag) std::cout << " ";
 			}
+		}
+		std::cout << "\n";
+	}
+
+	std::cout << "Score [" << score << "]\n";
+	std::cout << "Next block: \n";
+
+	for (int i = 0; i < 4; ++i) {
+		for (int j = 0; j < 4; ++j) {
+			bool flag = false;
+			for (const auto& e : nextBlock->getCurrentCells()) {
+				if (e.pos.getY() == i and e.pos.getX() == j) {
+					flag = true;
+					std::cout << "#";
+				}
+			}
+			if (!flag) std::cout << " ";
 		}
 		std::cout << "\n";
 	}

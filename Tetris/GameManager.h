@@ -2,13 +2,15 @@
 #include <time.h>
 #include <Windows.h>
 #include <conio.h>
+#include <thread>
 #include "Blocks.h"
 
 class GameManager
 {
 	bool isGameOver;
+	int score;
 	int width, height;
-	std::unique_ptr<Block> currentBlock;
+	std::unique_ptr<Block> currentBlock, nextBlock;
 	std::vector<std::vector<bool>> fallenBlocks;
 
 	void printBoard();
@@ -17,9 +19,11 @@ class GameManager
 	void handleInput();
 	void handleCollision();
 	void checkIfRowFull();
-	void deleteRow(int n);
+	void deleteRow(int row);
+	void placeBlock();
+	void checkIfGameOver();
 public:
-	GameManager(int width = 10, int height = 15);
+	GameManager(int width = 10, int height = 20);
 	~GameManager();
 
 	void run();

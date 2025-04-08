@@ -3,7 +3,7 @@
 Block::Block() : currentRotation(0) { }
 Block::~Block() { }
 
-bool Block::doesCollide(const std::vector<std::vector<bool>>& fallenBlocks) {
+bool Block::doesCollideFallen(const std::vector<std::vector<bool>>& fallenBlocks) {
     for (const auto& e : currentCells) {
         Vector2d realCellPos = pos + e.pos;
         int x = realCellPos.getX();
@@ -18,10 +18,22 @@ bool Block::doesCollide(const std::vector<std::vector<bool>>& fallenBlocks) {
     return false;
 }
 
+bool Block::doesCollideWall(int width) {
+    for (const auto& e : currentCells) {
+        int x = pos.getX() + e.pos.getX();
+
+        // if out
+        if (x == width || x == -1)
+            return true;
+    }
+    return false;
+}
+
 bool Block::isOnTheFloor(int height) {
     for (const auto& e : currentCells) {
         int y = pos.getY() + e.pos.getY();
         
+        // if out
         if (y == height) 
             return true;
     }
@@ -37,7 +49,8 @@ int Block::getCurrentRotation() const {
 }
 
 
-LBlock::LBlock() {
+LBlock::LBlock() 
+{
     rotateBlock(0);
 }
 
